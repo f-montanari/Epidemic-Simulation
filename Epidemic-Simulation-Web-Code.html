@@ -3186,7 +3186,7 @@
 		simulationParameters.reproductiveNumber = 0
 		
 		parameterData[0] = {name: 'infectionRadius', div: 'Infection Radius &nbsp&nbsp @@@',initValue: 0.1, max: 0.4, min: 0.01, step: 0.001, color: '10, 100%, 63%', transform: 'parseFloat(#paraValue#)', requiresReset: false, runFAtEnd: ''}
-		parameterData[1] = {name: 'probabilityofInfection', div: 'Chance of Infection on a given day is @@@%',initValue: 6, max: 100, min: 0, step: 0.01, color: '10, 100%, 63%', transform: 'parseFloat(#paraValue#)/100', requiresReset: false, runFAtEnd: ''}
+		parameterData[1] = {name: 'probabilityofInfection', div: 'Chance of Infection on a given day is @@@%',initValue: 4, max: 100, min: 0, step: 0.01, color: '10, 100%, 63%', transform: 'parseFloat(#paraValue#)/100', requiresReset: false, runFAtEnd: ''}
 		divAdjust = '@@@% population/community infected initially<br/><font style="color:grey; font-size: 1.2vmax;"> (In community case, @@@% of the community is infected initially, not the population.)</font>'
 		if (dmode == 'landscape') {
 			divAdjust = '@@@% population/community infected initially<br/><font style="color:grey; font-size: 0.8vmax;">(In community case, @@@% of the community is infected initially, not the population.)</font>'
@@ -3194,7 +3194,7 @@
 		parameterData[2] = {name: 'fractionInfectedInitially', div: divAdjust, initValue: 1, max: 100, min: 0, step: 0.1, color: '10, 100%, 63%', transform: 'parseFloat(#paraValue#)/100', requiresReset: true, runFAtEnd: ''}
 		parameterData[3] = {name: 'infectionTime', div: 'Infection duration is @@@ days',initValue: 25, max: 100, min: 1, step: 1, color: '10, 100%, 63%', transform: 'parseInt(#paraValue#)', requiresReset: false, runFAtEnd: ''}
 		parameterData[4] = {name: 'socialDistancingFactorA', div: 'Social Distancing Factor &nbsp&nbsp @@@',initValue: 0, max: 1, min: 0, step: 0.01, color: '40, 100%, 50%', transform: 'parseFloat(#paraValue#)', requiresReset: false, runFAtEnd: 'boundaryForceC = linearValue(0, 1, 0.1, 2,simulationParameters.socialDistancingFactorA)'}
-		parameterData[5] = {name: 'socialDistanceObedientPop', div: '@@@% of the population obeys Social Distancing',initValue: 100, max: 100, min: 0, step: 0.1, color: '40, 100%, 50%', transform: 'parseFloat(#paraValue#)/100', requiresReset: false, runFAtEnd: 'handleSDObedience()'}
+		parameterData[5] = {name: 'socialDistanceObedientPop', div: '@@@% of the population obeys Social Distancing',initValue: 75, max: 100, min: 0, step: 0.1, color: '40, 100%, 50%', transform: 'parseFloat(#paraValue#)/100', requiresReset: false, runFAtEnd: 'handleSDObedience()'}
 
 		divAdjust = 'Observe Social Distancing within @@@ times the infection radius.<br/><font style="color:grey; font-size: 1.2vmax;"> (This quantity reduces many computations. Smaller the value, better. But, larger values may mimic the simulation in the video)</font>'
 		if (dmode == 'landscape') {
@@ -4669,6 +4669,8 @@
 
 
 		interactionAnimation = true
+		// Allow or restrict travel between communities
+		var canTravel = true;
 
 		function interactions(ofBoundary) {
 			partDB = particleData[ofBoundary]
@@ -4763,7 +4765,7 @@
 
 					}
 				}
-				if (currentSim == 'communitiesCase' && particleData[ofBoundary][mainParticle].moveAnimation == false && Math.random() < simulationParameters.travelProbability) {
+				if (currentSim == 'communitiesCase' && particleData[ofBoundary][mainParticle].moveAnimation == false && Math.random() < simulationParameters.travelProbability && canTravel) {
 					chooseFrom = communitiesNames.slice(0, communitiesNames.length)
 					chooseFrom.splice(chooseFrom.indexOf(ofBoundary), 1)
 					moveToBoundary(randomChoice(chooseFrom), ofBoundary, mainParticle, 2*timeStepsPerDay)
@@ -5438,7 +5440,28 @@
 		<script>			
 			$(document).ready(() => {
 				// Setup quarantine situation as a start
-				$('#quarantinecheck').trigger('click');
+				//$('#quarantinecheck').trigger('click');
+				$('#communitiesoption').click();
+
+				// 7 => Days until quarantine
+				changeParameterWithoutReload(7, 1);
+
+				// 4 => Social distancing factor
+				//changeParameterWithoutReload(4, 1);
+
+				// 2 => Initial population 
+				var distancing = true;
+				window.setInterval(()=>{
+					if(distancing)					
+						// 4 => Social distancing factor
+						changeParameterWithoutReload(4, 1);						
+					else
+						// 4 => Social distancing factor
+						changeParameterWithoutReload(4, 0);
+					
+					distancing = !distancing;
+					canTravel = !canTravel;
+				}, 1000 * 21 / 3 ); // 1000ms * 21 days / 3 days/second 
 			});
 
 		</script>
